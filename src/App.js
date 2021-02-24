@@ -219,11 +219,21 @@ Evidence for this [cbc]'ed § 305 CRITERIA (links to reports/documentation, phot
         newStuff.criteriaSelfProc,
         newStuff.criteriaSymbSign,
       ].filter((criteriaBool) => criteriaBool === true).length >= 2;
-    setNewStuff({
-      ...newStuff,
+
+    setNewStuff((oldNewStuff) => ({
+      ...oldNewStuff,
       isGangMember: newStuff.criteriaCourt || newStuff.criteriaTats || atLeast2,
-    });
-  }, [newStuff]);
+    }));
+  }, [
+    newStuff.criteriaArrested,
+    newStuff.criteriaAssociating,
+    newStuff.criteriaCIRegSource,
+    newStuff.criteriaFrequenting,
+    newStuff.criteriaSelfProc,
+    newStuff.criteriaSymbSign,
+    newStuff.criteriaCourt,
+    newStuff.criteriaTats,
+  ]);
 
   useEffect(() => {
     setNewPersonFile(`[divbox=white]
