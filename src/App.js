@@ -528,57 +528,57 @@ ${newStuff.mentionedIn}
             </div>
           </div>
           <div>
-            <label>§ 305 CRITEREON:</label>
-            <Critereon
+            <label>§ 305 CRITERION:</label>
+            <Criterion
               label="Person has been ruled to be a gang member by a court"
               isChecked={newStuff.criteriaCourt}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaCourt: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person is marked in any permanent way with gang affiliated markings (e.g. tattoos, branding, scaring)"
               isChecked={newStuff.criteriaTats}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaTats: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person has admitted to being a gang member (self-proclamation)"
               isChecked={newStuff.criteriaSelfProc}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaSelfProc: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person has been arrested with known gang members for offenses consistent with gang activity"
               isChecked={newStuff.criteriaArrested}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaArrested: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person has been identified as a gang member by a reliable confidential informant/source registered by the law enforcement agency"
               isChecked={newStuff.criteriaCIRegSource}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaCIRegSource: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person has been documented associating with recorded gang members"
               isChecked={newStuff.criteriaAssociating}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaAssociating: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person has been documented displaying gang symbols and/or hand signs"
               isChecked={newStuff.criteriaSymbSign}
               onChangeCheckedHandler={(isChecked) =>
                 setNewStuff({ ...newStuff, criteriaSymbSign: isChecked })
               }
             />
-            <Critereon
+            <Criterion
               label="Person has been documented by law enforcement frequenting gang areas"
               isChecked={newStuff.criteriaFrequenting}
               onChangeCheckedHandler={(isChecked) =>
@@ -650,7 +650,7 @@ ${newStuff.mentionedIn}
   );
 }
 
-const Critereon = ({ label, isChecked, onChangeCheckedHandler }) => {
+const Criterion = ({ label, isChecked, onChangeCheckedHandler }) => {
   return (
     <div className="form-check">
       <input
