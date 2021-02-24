@@ -85,10 +85,10 @@ DD/MMM/YYYY [b]— Author[/b]`
       );
       if (oldCriteriaRegex != null) {
         return (
-          oldCriteriaRegex[0].indexOf("cbc") != -1 ||
-          oldCriteriaRegex[0].indexOf("CBC") != -1 ||
-          oldCriteriaRegex[0].indexOf("X") != -1 ||
-          oldCriteriaRegex[0].indexOf("x") != -1
+          oldCriteriaRegex[0].indexOf("cbc") !== -1 ||
+          oldCriteriaRegex[0].indexOf("CBC") !== -1 ||
+          oldCriteriaRegex[0].indexOf("X") !== -1 ||
+          oldCriteriaRegex[0].indexOf("x") !== -1
         );
       }
     }
@@ -218,21 +218,12 @@ Evidence for this [cbc]'ed § 305 CRITERIA (links to reports/documentation, phot
         newStuff.criteriaFrequenting,
         newStuff.criteriaSelfProc,
         newStuff.criteriaSymbSign,
-      ].filter((criteriaBool) => criteriaBool == true).length >= 2;
+      ].filter((criteriaBool) => criteriaBool === true).length >= 2;
     setNewStuff({
       ...newStuff,
       isGangMember: newStuff.criteriaCourt || newStuff.criteriaTats || atLeast2,
     });
-  }, [
-    newStuff.criteriaArrested,
-    newStuff.criteriaAssociating,
-    newStuff.criteriaCIRegSource,
-    newStuff.criteriaCourt,
-    newStuff.criteriaFrequenting,
-    newStuff.criteriaSelfProc,
-    newStuff.criteriaSymbSign,
-    newStuff.criteriaTats,
-  ]);
+  }, [newStuff]);
 
   useEffect(() => {
     setNewPersonFile(`[divbox=white]
