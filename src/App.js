@@ -1,43 +1,45 @@
 import TextareaAutosize from "react-textarea-autosize";
 import { useEffect, useState } from "react";
+import { generateSangang } from "./formats/sangang";
+import { generatePoi } from "./formats/poi";
+
 import "./App.css";
+import CopyToClipboard from "react-copy-to-clipboard";
 function App() {
-  const [oldBBCode, setOldBBCode] = useState(``);
-  const [newPersonFile, setNewPersonFile] = useState(``);
-  const [newStuff, setNewStuff] = useState({
-    mdcLink: "",
-    imgUrl: "",
+  const [oldPersonFile, setOldPersonFile] = useState(``);
+  const [parsedOldPersonFile, setParsedOldPersonFile] = useState({
     name: "",
     age: "",
     race: "",
     sex: "",
     description: "",
-
     phoneNumbers: "",
     residences: "",
     vehicles: "",
-
-    isGangMember: false,
-    gangClique: "",
-    moniker: "",
-
-    criteriaCourt: false,
-    criteriaTats: false,
-    criteriaSelfProc: false,
-    criteriaArrested: false,
-    criteriaCIRegSource: false,
-    criteriaAssociating: false,
-    criteriaSymbSign: false,
-    criteriaFrequenting: false,
+    isA: false,
+    isB: false,
+    isC: false,
+    isD: false,
+    isE: false,
+    isF: false,
+    isG: false,
+    isH: false,
+    evidenceA: "",
+    evidenceB: "",
+    evidenceC: "",
+    evidenceD: "",
+    evidenceE: "",
+    evidenceF: "",
+    evidenceG: "",
+    evidenceH: "",
     criteriaEvidence: "",
-
-    log: ``,
+    log: "",
     mentionedIn: "",
   });
 
   const boldedFieldLabelRegexp = (fieldName, nextFieldName) => {
     return new RegExp(
-      `(?<=\\[b\\]\\s*${fieldName}\\s*:\\s*\\[\\/b\\]\\s*)` +
+      `(?<=\\[b\\]\\s*${fieldName}\\s*:*\\s*\\[\\/b\\]\\s*)` +
         `[^\\s][^]*[^\\s]` +
         `(?=\\s*\\[b\\]${nextFieldName})`,
       "gi"
@@ -51,93 +53,95 @@ function App() {
       .replace(new RegExp(`\\[\\*\\]\\s*`, "gi"), "");
   };
 
-  const cleanLogListData = (logListData) => {
-    return cleanBasicListData(logListData).replace(
-      new RegExp(`DD/MMM/YYYY - Notes`, "gi"),
-      `[*] -
-DD/MMM/YYYY [b]— Author[/b]`
-    );
-  };
-
-  const cleanMentionedInListData = (mentionedInListData) => {
-    return cleanBasicListData(mentionedInListData).replace(
-      new RegExp(
-        `\\[url=LINK TO SUBMISSION\\]SUBMISSION NAME\\[\\/url\\]`,
-        "gi"
-      ),
-      `[*] [url=LINK]Title[/url]`
-    );
-  };
-
-  const magicButton = (newStuffFieldName) => {
-    setNewStuff({
-      ...newStuff,
-      [newStuffFieldName]: newStuff[newStuffFieldName]
-        .replace(new RegExp(`\\[\\*\\]\\s*`, "g"), "")
-        .replace(new RegExp(`^`, "gm"), "[*] "),
-    });
-  };
-
-  const criteriaCheckedChecker = (criteriaLabel) => {
-    if (oldBBCode != null) {
-      const oldCriteriaRegex = oldBBCode.match(
-        new RegExp(`.*[^\\s*](?=\\s${criteriaLabel})`, "gi")
-      );
-      if (oldCriteriaRegex != null) {
-        return (
-          oldCriteriaRegex[0].indexOf("cbc") !== -1 ||
-          oldCriteriaRegex[0].indexOf("CBC") !== -1 ||
-          oldCriteriaRegex[0].indexOf("X") !== -1 ||
-          oldCriteriaRegex[0].indexOf("x") !== -1
+  useEffect(() => {
+    const criteriaCheckedChecker = (criteriaLabel) => {
+      if (oldPersonFile != null) {
+        const oldCriteriaRegex = oldPersonFile.match(
+          new RegExp(`.*[^\\s*](?=\\s${criteriaLabel})`, "gi")
         );
+        if (oldCriteriaRegex != null) {
+          return (
+            oldCriteriaRegex[0].indexOf("cbc") !== -1 ||
+            oldCriteriaRegex[0].indexOf("CBC") !== -1 ||
+            oldCriteriaRegex[0].indexOf("X") !== -1 ||
+            oldCriteriaRegex[0].indexOf("x") !== -1
+          );
+        }
       }
-    }
-  };
-
-  const parseOld = () => {
-    if (oldBBCode != null) {
-      const mdcLink = oldBBCode.match(
+    };
+    if (oldPersonFile != null) {
+      const mdcUrl = oldPersonFile.match(
         /(https:\/\/mdc.gta.world).*(?=\]\w*\[\/url\])/gi
       );
-      const imgUrl = oldBBCode.match(
+      const imgUrl = oldPersonFile.match(
         /(?<=\[divbox=white\]\[img\]).*(?=\[\/img\])/gi
       );
 
-      const name = oldBBCode.match(
+      const name1 = oldPersonFile.match(
         boldedFieldLabelRegexp("FULL NAME", "ALIASES")
       );
-      const moniker = oldBBCode.match(
-        boldedFieldLabelRegexp("ALIASES", "TYPE")
-      );
-      const gangClique = oldBBCode.match(
-        boldedFieldLabelRegexp("AFFILIATION", "PHONE")
-      );
-      const phones = oldBBCode.match(
-        boldedFieldLabelRegexp("PHONE NUMBER", "RESIDENCE")
-      );
-      const residences = oldBBCode.match(
-        boldedFieldLabelRegexp("RESIDENCE\\(S\\)", "VEHICLE\\(S\\)")
-      );
-      const vehicles = oldBBCode.match(
-        boldedFieldLabelRegexp("VEHICLE\\(S\\)", "AGE")
-      );
-      const age = oldBBCode.match(boldedFieldLabelRegexp("AGE", "RACE"));
-
-      const race = oldBBCode.match(boldedFieldLabelRegexp("RACE", "SEX"));
-      const sex = oldBBCode.match(
+      const name2 = oldPersonFile.match(boldedFieldLabelRegexp("NAME", "AGE"));
+      const age = oldPersonFile.match(boldedFieldLabelRegexp("AGE", "RACE"));
+      const race = oldPersonFile.match(boldedFieldLabelRegexp("RACE", "SEX"));
+      const sex1 = oldPersonFile.match(
         boldedFieldLabelRegexp("SEX", "PHYSICAL DESCRIPTION")
       );
-      const description = oldBBCode.match(
+      const sex2 = oldPersonFile.match(
+        boldedFieldLabelRegexp("SEX", "DESCRIPTION")
+      );
+      const description1 = oldPersonFile.match(
         boldedFieldLabelRegexp("PHYSICAL DESCRIPTION", "KNOWN ASSOCIATES")
       );
+      const description2 = oldPersonFile.match(
+        boldedFieldLabelRegexp("DESCRIPTION", "PHONE NUMBER\\(S\\)")
+      );
+      const moniker1 = oldPersonFile.match(
+        boldedFieldLabelRegexp("ALIASES", "TYPE")
+      );
+      const moniker2 = oldPersonFile.match(
+        boldedFieldLabelRegexp("MONIKER", "§ 305 CRITERION")
+      );
+      const gangClique1 = oldPersonFile.match(
+        boldedFieldLabelRegexp("AFFILIATION", "PHONE")
+      );
+      const gangClique2 = oldPersonFile.match(
+        boldedFieldLabelRegexp("GANG/CLIQUE", "MONIKER")
+      );
+      const phoneNumbers1 = oldPersonFile.match(
+        boldedFieldLabelRegexp("PHONE NUMBER", "RESIDENCE")
+      );
+      const phoneNumbers2 = oldPersonFile.match(
+        boldedFieldLabelRegexp("PHONE NUMBER\\(S\\)", "RESIDENCE\\(S\\)")
+      );
+      const residences = oldPersonFile.match(
+        boldedFieldLabelRegexp("RESIDENCE\\(S\\)", "VEHICLE\\(S\\)")
+      );
+      const vehicles1 = oldPersonFile.match(
+        boldedFieldLabelRegexp("VEHICLE\\(S\\)", "AGE")
+      );
 
-      const log = oldBBCode.match(
+      const vehicles2 = oldPersonFile.match(
+        boldedFieldLabelRegexp(
+          "VEHICLE\\(S\\)",
+          "\\[color=#FFFFFF\\]SANGANG\\[\\/color\\]"
+        )
+      );
+
+      const log1 = oldPersonFile.match(
         new RegExp(
           `(?<=\\s*NOTES & SUBMISSIONS\\[\\/color\\]\\[\\/b\\]\\[\\/center\\]\\[\\/divbox\\]\\s*\\[quote\\]\\s*)[^\\s][^]*[^\\s](?=\\s*\\[\\/quote\\])`,
           "gi"
         )
       );
-      const mentionedIn = oldBBCode.match(
+      const log2 = oldPersonFile.match(
+        new RegExp(
+          `(?<=\\[b\\]LOG\\[\\/b\\]\\s*\\[quote\\])` +
+            `[^]*` +
+            `(?=\\[\\/quote\\])`,
+          "gi"
+        )
+      );
+      const mentionedIn1 = oldPersonFile.match(
         new RegExp(
           `(?<=\\[b\\]\\s*PERSON MENTIONED IN SUBMISSION\\s*\\[\\/b\\]\\s*)` +
             `[^\\s][^]*[^\\s]` +
@@ -145,8 +149,15 @@ DD/MMM/YYYY [b]— Author[/b]`
           "gi"
         )
       );
-
-      const criteriaEvidence = oldBBCode.match(
+      const mentionedIn2 = oldPersonFile.match(
+        new RegExp(
+          `(?<=\\[b\\]\\s*MENTIONED IN\\s*\\[\\/b\\]\\s*)` +
+            `[^\\s][^]*[^\\s]` +
+            `(?=\\s*\\[\\/divbox\\])`,
+          "gi"
+        )
+      );
+      const criteriaEvidence1 = oldPersonFile.match(
         new RegExp(
           `(?<=\\[b\\]\\s*Evidence:\\s*\\[\\/b\\]\\s*)` +
             `[^\\s][^]*[^\\s]` +
@@ -155,521 +166,544 @@ DD/MMM/YYYY [b]— Author[/b]`
         )
       );
 
-      setNewStuff({
-        mdcLink: mdcLink ? mdcLink[0] : "",
-        imgUrl: imgUrl ? imgUrl[0] : "https://i.imgur.com/RvO2yL5.png?1",
-        name: name ? name[0] : "",
+      const criteriaEvidence2 = oldPersonFile.match(
+        new RegExp(
+          `(?<=\\[b\\]\\s*§ 305 EVIDENCE\\s*\\[\\/b\\]\\s*)` +
+            `[^\\s][^]*[^\\s]` +
+            `(?=\\s*\\[\\/divbox\\]\\s*\\[hr])`,
+          "gi"
+        )
+      );
+
+      setParsedOldPersonFile({
+        name: name1 ? name1[0] : name2 ? name2[0] : "",
         age: age ? age[0] : "",
         race: race ? race[0] : "",
-        sex: sex ? sex[0] : "",
-        description: description ? description[0] : "",
-        phoneNumbers: phones ? phones[0] : "[*]",
-        residences: residences ? cleanBasicListData(residences[0]) : "[*]",
-        vehicles: vehicles
-          ? cleanBasicListData(vehicles[0])
-          : "[*] MODEL (PLATE) [VIN]",
-        moniker: moniker ? moniker[0] : "",
-        gangClique: gangClique ? gangClique[0] : "",
-        log: log
-          ? cleanLogListData(log[0])
-          : `[*] -
-DD/MMM/YYYY [b]— Author[/b]`,
-        mentionedIn: mentionedIn
-          ? cleanMentionedInListData(mentionedIn[0])
-          : "[*] [url=LINK]Document Title[/url]",
-
-        criteriaCourt: false,
-        criteriaTats: criteriaCheckedChecker(
-          "Subject has been documented having gang tattoos"
-        ),
-        criteriaSelfProc: criteriaCheckedChecker(
-          "Subject has admitted to being a gang member"
-        ),
-        criteriaArrested: criteriaCheckedChecker(
-          "Subject has been arrested with known gang members"
-        ),
-        criteriaCIRegSource: criteriaCheckedChecker(
-          "Subject has been identified as a gang member by a reliable confidential"
-        ),
-        criteriaAssociating: criteriaCheckedChecker(
-          "Subject has been documented associating"
-        ),
-        criteriaSymbSign: criteriaCheckedChecker(
-          "Subject has been documented displaying gang symbols"
-        ),
-        criteriaFrequenting: criteriaCheckedChecker(
-          "Subject has been documented by law enforcement frequenting"
-        ),
-        criteriaEvidence: criteriaEvidence
-          ? criteriaEvidence[0]
-          : `[altspoiler=§ 305 CRITERIA]
-Evidence for this [cbc]'ed § 305 CRITERIA (links to reports/documentation, photographs, narratives, etc.)
-[/altspoiler]`,
+        sex: sex1 ? sex1[0] : sex2 ? sex2[0] : "",
+        description: description1
+          ? description1[0]
+          : description2
+          ? description2[0]
+          : "",
+        phoneNumbers: phoneNumbers1
+          ? cleanBasicListData(phoneNumbers1[0])
+          : phoneNumbers2
+          ? cleanBasicListData(phoneNumbers2[0])
+          : "",
+        residences: residences ? cleanBasicListData(residences[0]) : "",
+        vehicles: vehicles1
+          ? cleanBasicListData(vehicles1[0])
+          : vehicles2
+          ? cleanBasicListData(
+              vehicles2[0].replace(
+                new RegExp(
+                  `\\[\\/divbox\\]\\s*\\[hr\\]\\[\\/hr\\]\\s*\\[divbox=black\\]\\[center\\]`,
+                  "gi"
+                ),
+                ""
+              )
+            )
+          : "",
+        isA: criteriaCheckedChecker("by a court"),
+        isB:
+          criteriaCheckedChecker("gang affiliated markings") ||
+          criteriaCheckedChecker("having gang tattoos"),
+        isC: criteriaCheckedChecker("has admitted to being a"),
+        isD: criteriaCheckedChecker("arrested with known gang members"),
+        isE: criteriaCheckedChecker("reliable confidential"),
+        isF: criteriaCheckedChecker("associating with recorded"),
+        isG: criteriaCheckedChecker("displaying gang symbols"),
+        isH: criteriaCheckedChecker("frequenting gang areas"),
+        evidenceA: "",
+        evidenceB: "",
+        evidenceC: "",
+        evidenceD: "",
+        evidenceE: "",
+        evidenceF: "",
+        evidenceG: "",
+        evidenceH: "",
+        criteriaEvidence: criteriaEvidence1
+          ? criteriaEvidence1[0]
+          : criteriaEvidence2
+          ? criteriaEvidence2[0]
+          : "",
+        gangClique: gangClique1
+          ? gangClique1[0]
+          : gangClique2
+          ? gangClique2[0]
+          : "",
+        moniker: moniker1
+          ? moniker1[0]
+          : moniker2
+          ? moniker2[0].replace(
+              new RegExp(`\\s*\\[altspoiler=§ 305\\]\\s*`, "gi"),
+              ""
+            )
+          : "",
+        log: log1
+          ? cleanBasicListData(log1[0])
+          : log2
+          ? cleanBasicListData(log2[0])
+          : "",
+        mentionedIn: mentionedIn1
+          ? cleanBasicListData(mentionedIn1[0])
+          : mentionedIn2
+          ? cleanBasicListData(mentionedIn2[0])
+          : "",
+        mdcUrl: mdcUrl ? mdcUrl[0] : "",
+        imgUrl: imgUrl ? imgUrl[0] : "",
       });
     }
-  };
+  }, [oldPersonFile]);
 
-  useEffect(() => {
-    const atLeast2 =
-      [
-        newStuff.criteriaArrested,
-        newStuff.criteriaAssociating,
-        newStuff.criteriaCIRegSource,
-        newStuff.criteriaFrequenting,
-        newStuff.criteriaSelfProc,
-        newStuff.criteriaSymbSign,
-      ].filter((criteriaBool) => criteriaBool === true).length >= 2;
-
-    setNewStuff((oldNewStuff) => ({
-      ...oldNewStuff,
-      isGangMember: newStuff.criteriaCourt || newStuff.criteriaTats || atLeast2,
-    }));
-  }, [
-    newStuff.criteriaArrested,
-    newStuff.criteriaAssociating,
-    newStuff.criteriaCIRegSource,
-    newStuff.criteriaFrequenting,
-    newStuff.criteriaSelfProc,
-    newStuff.criteriaSymbSign,
-    newStuff.criteriaCourt,
-    newStuff.criteriaTats,
-  ]);
-
-  useEffect(() => {
-    setNewPersonFile(`[divbox=white]
-[center][b][u]STATE CRIME INFORMATION CENTER - PERSON FILE[/u][/b][/center]
-[divbox=black][center][b][color=#FFFFFF]SANPERS[/color][/b][/center][/divbox]
-[divbox=white]
-[aligntable=right,180,1,0,0,0,0]
-[CENTER][divbox=white][img]${newStuff.imgUrl}[/img][/divbox][/CENTER]
-[center][b]MDC:[/b] [url=${newStuff.mdcLink}]ACCESS[/URL][/center]
-[/aligntable]
-[b]NAME:[/b] ${newStuff.name}
-[b]AGE:[/b] ${newStuff.age}
-[b]RACE:[/b] ${newStuff.race}
-[b]SEX:[/b] ${newStuff.sex}
-[b]DESCRIPTION:[/b] ${newStuff.description}
-
-[b]PHONE NUMBER(S):[/b]
-[list]
-${newStuff.phoneNumbers}
-[/list]
-[b]RESIDENCE(S):[/b]
-[list]
-${newStuff.residences}
-[/list]
-[b]VEHICLE(S):[/b]
-[list]
-${newStuff.vehicles}
-[/list]
-[/divbox]
-[hr][/hr]
-[divbox=black][center][b][color=#FFFFFF]SANGANG[/color][/b][/center][/divbox]
-[divbox=white]
-[aligntable=right,0,1,0,0,0,0]
-${newStuff.isGangMember ? "[cbc]" : "[cb]"} § 305 GANG MEMBER
-[/aligntable]
-[b]GANG/CLIQUE:[/b] ${newStuff.gangClique}
-[b]MONIKER:[/b] ${newStuff.moniker}
-
-
-[altspoiler=§ 305]
-[b]§ 305 CRITERION[/b]
-${
-  newStuff.criteriaCourt ? "[cbc]" : "[cb]"
-} Person has been ruled to be a gang member by a court
-${
-  newStuff.criteriaTats ? "[cbc]" : "[cb]"
-} Person is marked in any permanent way with gang affiliated markings (e.g. tattoos, branding, scaring)
-${
-  newStuff.criteriaSelfProc ? "[cbc]" : "[cb]"
-} Person has admitted to being a gang member (self-proclamation)
-${
-  newStuff.criteriaArrested ? "[cbc]" : "[cb]"
-} Person has been arrested with known gang members for offenses consistent with gang activity
-${
-  newStuff.criteriaCIRegSource ? "[cbc]" : "[cb]"
-} Person has been identified as a gang member by a reliable confidential informant/source registered by the law enforcement agency
-${
-  newStuff.criteriaAssociating ? "[cbc]" : "[cb]"
-} Person has been documented associating with recorded gang members
-${
-  newStuff.criteriaSymbSign ? "[cbc]" : "[cb]"
-} Person has been documented displaying gang symbols and/or hand signs
-${
-  newStuff.criteriaFrequenting ? "[cbc]" : "[cb]"
-} Person has been documented by law enforcement frequenting gang areas
-
-[b]§ 305 EVIDENCE[/b] 
-${newStuff.criteriaEvidence}
-[/altspoiler]
-[/divbox]
-[hr][/hr]
-[divbox=black][center][b][color=#FFFFFF]NOTES & MENTIONS[/color][/b][/center][/divbox]
-[divbox=white]
-[b]LOG[/b]
-[quote] 
-[list]
-${newStuff.log}
-[/list]
-[/quote]
-
-[b]MENTIONED IN[/b]
-[list]
-${newStuff.mentionedIn}
-[/list]
-[/divbox]
-[/divbox]`);
-  }, [newStuff]);
+  useEffect(() => {}, [parsedOldPersonFile]);
 
   return (
     <div className="container-fluid">
       <div className="row">
-        <div className="col-6">
-          <div className="form-group">
-            <label>OLD PERSON FILE (Input)</label>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              minRows={9}
-              maxRows={9}
-              value={oldBBCode}
-              onChange={(e) => setOldBBCode(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="col-6" style={{ backgroundColor: "lightgray" }}>
-          <div className="form-group">
-            <label>NEW PERSON FILE (Output)</label>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              minRows={9}
-              maxRows={9}
-              value={newPersonFile}
-              onChange={(e) => setNewPersonFile(e.target.value)}
-            />
-          </div>
-        </div>
-      </div>
-      <div className="row">
-        <div className="col-12">
-          <button
-            type="button"
-            className="btn btn-primary"
-            style={{ margin: "auto" }}
-            onClick={() => parseOld()}
+        <div className="form-group col-2">
+          <label
+            style={{
+              backgroundColor: "black",
+              color: "white",
+              fontWeight: "bold",
+            }}
           >
-            Parse
-          </button>
+            1: PARSE
+          </label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            placeholder="Old SANPERS/SANGANG"
+            maxRows={1}
+            value={oldPersonFile}
+            onChange={(e) => setOldPersonFile(e.target.value)}
+          />
         </div>
-      </div>
-      <div className="row">
-        <div className="col-6">
+        <div className="col-10">
           <div className="row">
-            <div className="form-group col-6">
+            <div className="form-group col-2">
               <label>NAME</label>
               <TextareaAutosize
                 className="form-control form-control-sm"
-                value={newStuff.name}
+                value={parsedOldPersonFile.name}
                 onChange={(e) =>
-                  setNewStuff({ ...newStuff, name: e.target.value })
+                  setParsedOldPersonFile({
+                    ...parsedOldPersonFile,
+                    name: e.target.value,
+                  })
                 }
               />
             </div>
-            <div className="form-group col">
+
+            <div className="form-group col-1">
               <label>AGE</label>
               <TextareaAutosize
                 className="form-control form-control-sm"
-                value={newStuff.age}
+                value={parsedOldPersonFile.age}
                 onChange={(e) =>
-                  setNewStuff({ ...newStuff, age: e.target.value })
+                  setParsedOldPersonFile({
+                    ...parsedOldPersonFile,
+                    age: e.target.value,
+                  })
                 }
               />
             </div>
-            <div className="form-group col">
+            <div className="form-group col-1">
               <label>RACE</label>
               <TextareaAutosize
                 className="form-control form-control-sm"
-                value={newStuff.race}
+                value={parsedOldPersonFile.race}
                 onChange={(e) =>
-                  setNewStuff({ ...newStuff, race: e.target.value })
+                  setParsedOldPersonFile({
+                    ...parsedOldPersonFile,
+                    race: e.target.value,
+                  })
                 }
               />
             </div>
-            <div className="form-group col">
+            <div className="form-group col-1">
               <label>SEX</label>
               <TextareaAutosize
                 className="form-control form-control-sm"
-                value={newStuff.sex}
+                value={parsedOldPersonFile.sex}
                 onChange={(e) =>
-                  setNewStuff({ ...newStuff, sex: e.target.value })
-                }
-              />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>DESCRIPTION</label>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.description}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, description: e.target.value })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <label>PHONE NUMBER(S)</label>
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() =>
-                  setNewStuff({
-                    ...newStuff,
-                    phoneNumbers: newStuff.phoneNumbers.replace(/^/gm, "[*] "),
+                  setParsedOldPersonFile({
+                    ...parsedOldPersonFile,
+                    sex: e.target.value,
                   })
                 }
-              >
-                Magic [*]
-              </button>
-            </div>
-            <div className="text-muted small">
-              One Phone # per line, then Magic [*]
-            </div>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.phoneNumbers}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, phoneNumbers: e.target.value })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <label>RESIDENCE(S):</label>{" "}
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => magicButton("residences")}
-              >
-                Magic [*]
-              </button>
-            </div>
-            <div className="text-muted small">
-              One Residence per line, then Magic [*]
-            </div>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.residences}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, residences: e.target.value })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <label> VEHICLE(S):</label>
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => magicButton("vehicles")}
-              >
-                Magic [*]
-              </button>
-            </div>
-            <div className="text-muted small">
-              One [*] Vehicle per line, then Magic [*]
-            </div>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.vehicles}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, vehicles: e.target.value })
-              }
-            />
-          </div>
-        </div>
-        <div className="col-6">
-          <div className="row">
-            <div className="form-group col">
-              <label>GANG/CLIQUE:</label>
-              <TextareaAutosize
-                className="form-control form-control-sm"
-                value={newStuff.gangClique}
-                onChange={(e) =>
-                  setNewStuff({ ...newStuff, gangClique: e.target.value })
-                }
               />
             </div>
             <div className="form-group col">
-              <label>MONIKER:</label>
+              <label>DESCRIPTION</label>
               <TextareaAutosize
+                maxRows={1}
+                minRows={1}
                 className="form-control form-control-sm"
-                value={newStuff.moniker}
+                value={parsedOldPersonFile.description}
                 onChange={(e) =>
-                  setNewStuff({ ...newStuff, moniker: e.target.value })
+                  setParsedOldPersonFile({
+                    ...parsedOldPersonFile,
+                    description: e.target.value,
+                  })
                 }
               />
             </div>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                checked={newStuff.isGangMember}
-                onChange={(e) =>
-                  setNewStuff({ ...newStuff, isGangMember: e.target.checked })
-                }
-              />
-              <label className="form-check-label">§ 305 CONFIRMED</label>
-            </div>
-          </div>
-          <div>
-            <label>§ 305 CRITERION:</label>
-            <Criterion
-              label="Person has been ruled to be a gang member by a court"
-              isChecked={newStuff.criteriaCourt}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaCourt: isChecked })
-              }
-            />
-            <Criterion
-              label="Person is marked in any permanent way with gang affiliated markings (e.g. tattoos, branding, scaring)"
-              isChecked={newStuff.criteriaTats}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaTats: isChecked })
-              }
-            />
-            <Criterion
-              label="Person has admitted to being a gang member (self-proclamation)"
-              isChecked={newStuff.criteriaSelfProc}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaSelfProc: isChecked })
-              }
-            />
-            <Criterion
-              label="Person has been arrested with known gang members for offenses consistent with gang activity"
-              isChecked={newStuff.criteriaArrested}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaArrested: isChecked })
-              }
-            />
-            <Criterion
-              label="Person has been identified as a gang member by a reliable confidential informant/source registered by the law enforcement agency"
-              isChecked={newStuff.criteriaCIRegSource}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaCIRegSource: isChecked })
-              }
-            />
-            <Criterion
-              label="Person has been documented associating with recorded gang members"
-              isChecked={newStuff.criteriaAssociating}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaAssociating: isChecked })
-              }
-            />
-            <Criterion
-              label="Person has been documented displaying gang symbols and/or hand signs"
-              isChecked={newStuff.criteriaSymbSign}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaSymbSign: isChecked })
-              }
-            />
-            <Criterion
-              label="Person has been documented by law enforcement frequenting gang areas"
-              isChecked={newStuff.criteriaFrequenting}
-              onChangeCheckedHandler={(isChecked) =>
-                setNewStuff({ ...newStuff, criteriaFrequenting: isChecked })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <label>§ 305 EVIDENCE:</label>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.criteriaEvidence}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, criteriaEvidence: e.target.value })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <label>LOG:</label>
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => magicButton("log")}
-              >
-                Magic [*]
-              </button>
-            </div>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.log}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, log: e.target.value })
-              }
-            />
-          </div>
-          <div className="form-group">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <label> MENTIONED IN: </label>
-              <button
-                className="btn btn-sm btn-secondary"
-                onClick={() => magicButton("mentionedIn")}
-              >
-                Magic [*]
-              </button>
-            </div>
-            <TextareaAutosize
-              className="form-control form-control-sm"
-              value={newStuff.mentionedIn}
-              onChange={(e) =>
-                setNewStuff({ ...newStuff, mentionedIn: e.target.value })
-              }
-            />
           </div>
         </div>
+      </div>
+      <div className="row">
+        <div className="form-group col-3">
+          <label>MDC URL</label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            maxRows={1}
+            value={parsedOldPersonFile.mdcUrl}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                mdcUrl: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-3">
+          <label>IMG URL</label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            value={parsedOldPersonFile.imgUrl}
+            maxRows={1}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                imgUrl: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-2">
+          <label>GANG/CLIQUE</label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            value={parsedOldPersonFile.gangClique}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                gangClique: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-2">
+          <label>MONIKER</label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            value={parsedOldPersonFile.moniker}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                moniker: e.target.value,
+              })
+            }
+          />
+        </div>
+      </div>
+      <div className="row">
+        <div className="form-group col-1">
+          <label>PHONES</label>
+          <TextareaAutosize
+            minRows={4}
+            maxRows={4}
+            className="form-control form-control-sm"
+            value={parsedOldPersonFile.phoneNumbers}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                phoneNumbers: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-2">
+          <label>RESIDENCE(S)</label>{" "}
+          <TextareaAutosize
+            minRows={4}
+            maxRows={4}
+            className="form-control form-control-sm"
+            value={parsedOldPersonFile.residences}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                residences: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-2">
+          <label> VEHICLE(S)</label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            minRows={4}
+            maxRows={4}
+            value={parsedOldPersonFile.vehicles}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                vehicles: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-3">
+          <label>LOG</label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            minRows={4}
+            maxRows={4}
+            value={parsedOldPersonFile.log}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                log: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="form-group col-4">
+          <label> MENTIONED IN: </label>
+          <TextareaAutosize
+            className="form-control form-control-sm"
+            minRows={4}
+            maxRows={4}
+            value={parsedOldPersonFile.mentionedIn}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                mentionedIn: e.target.value,
+              })
+            }
+          />
+        </div>
+      </div>
+      <hr></hr>
+      <label
+        style={{
+          backgroundColor: "black",
+          color: "white",
+          fontWeight: "bold",
+        }}
+      >
+        2: FIX 305
+      </label>
+      <div className="row">
+        <div className="form-group col">
+          <label>OLD § 305 EVIDENCE</label>
+          <TextareaAutosize
+            minRows={4}
+            className="form-control form-control-sm"
+            value={parsedOldPersonFile.criteriaEvidence}
+            onChange={(e) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                criteriaEvidence: e.target.value,
+              })
+            }
+          />
+        </div>
+        <div className="col">
+          <label>NEW § 305</label>
+          <Criterion
+            label="A: Person has been ruled to be a gang member by a court"
+            isChecked={parsedOldPersonFile.isA}
+            evidenceText={parsedOldPersonFile.evidenceA}
+            onChangeCheckedHandler={(isA) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isA,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceA) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceA })
+            }
+          />
+          <Criterion
+            label="B: Person is marked in any permanent way with gang affiliated markings (e.g. tattoos, branding, scaring)"
+            isChecked={parsedOldPersonFile.isB}
+            evidenceText={parsedOldPersonFile.evidenceB}
+            onChangeCheckedHandler={(isB) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isB,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceB) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceB })
+            }
+          />
+          <Criterion
+            label="C: Person has admitted to being a gang member (self-proclamation)"
+            isChecked={parsedOldPersonFile.isC}
+            evidenceText={parsedOldPersonFile.evidenceC}
+            onChangeCheckedHandler={(isC) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isC,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceC) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceC })
+            }
+          />
+          <Criterion
+            label="D: Person has been arrested with known gang members for offenses consistent with gang activity"
+            isChecked={parsedOldPersonFile.isD}
+            evidenceText={parsedOldPersonFile.evidenceD}
+            onChangeCheckedHandler={(isD) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isD,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceD) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceD })
+            }
+          />
+          <Criterion
+            label="E: Person has been identified as a gang member by a reliable confidential informant/source registered by the law enforcement agency"
+            isChecked={parsedOldPersonFile.isE}
+            evidenceText={parsedOldPersonFile.evidenceE}
+            onChangeCheckedHandler={(isE) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isE,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceE) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceE })
+            }
+          />
+          <Criterion
+            label="F: Person has been documented associating with recorded gang members"
+            isChecked={parsedOldPersonFile.isF}
+            evidenceText={parsedOldPersonFile.evidenceF}
+            onChangeCheckedHandler={(isF) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isF,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceF) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceF })
+            }
+          />
+          <Criterion
+            label="G: Person has been documented displaying gang symbols and/or hand signs"
+            isChecked={parsedOldPersonFile.isG}
+            evidenceText={parsedOldPersonFile.evidenceG}
+            onChangeCheckedHandler={(isG) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isG,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceG) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceG })
+            }
+          />
+          <Criterion
+            label="H: Person has been documented by law enforcement frequenting gang areas"
+            isChecked={parsedOldPersonFile.isH}
+            evidenceText={parsedOldPersonFile.evidenceH}
+            onChangeCheckedHandler={(isH) =>
+              setParsedOldPersonFile({
+                ...parsedOldPersonFile,
+                isH,
+              })
+            }
+            onChangeEvidenceHandler={(evidenceH) =>
+              setParsedOldPersonFile({ ...parsedOldPersonFile, evidenceH })
+            }
+          />
+        </div>
+      </div>
+      <hr></hr>
+      <div
+        className="row"
+        style={{ display: "flex", justifyContent: "center" }}
+      >
+        <CopyToClipboard
+          text={generateSangang(
+            parsedOldPersonFile.name,
+            parsedOldPersonFile.gangClique,
+            parsedOldPersonFile.moniker,
+            parsedOldPersonFile.mdcUrl,
+            parsedOldPersonFile.isA,
+            parsedOldPersonFile.isB,
+            parsedOldPersonFile.isC,
+            parsedOldPersonFile.isD,
+            parsedOldPersonFile.isE,
+            parsedOldPersonFile.isF,
+            parsedOldPersonFile.isG,
+            parsedOldPersonFile.isH,
+            parsedOldPersonFile.evidenceA,
+            parsedOldPersonFile.evidenceB,
+            parsedOldPersonFile.evidenceC,
+            parsedOldPersonFile.evidenceD,
+            parsedOldPersonFile.evidenceE,
+            parsedOldPersonFile.evidenceF,
+            parsedOldPersonFile.evidenceG,
+            parsedOldPersonFile.evidenceH
+          )}
+        >
+          <button className="btn btn-secondary" style={{ fontWeight: "bold" }}>
+            📋 SanGang
+          </button>
+        </CopyToClipboard>
+        <CopyToClipboard
+          text={generatePoi(
+            parsedOldPersonFile.imgUrl,
+            parsedOldPersonFile.mdcUrl,
+            parsedOldPersonFile.name,
+            parsedOldPersonFile.race,
+            parsedOldPersonFile.sex,
+            parsedOldPersonFile.description
+          )}
+        >
+          <button className="btn btn-primary" style={{ fontWeight: "bold" }}>
+            📋 POI
+          </button>
+        </CopyToClipboard>
       </div>
     </div>
   );
 }
 
-const Criterion = ({ label, isChecked, onChangeCheckedHandler }) => {
+const Criterion = ({
+  label,
+  isChecked,
+  evidenceText,
+  onChangeCheckedHandler,
+  onChangeEvidenceHandler,
+}) => {
   return (
-    <div className="form-check">
-      <input
-        type="checkbox"
-        className="form-check-input"
-        checked={isChecked}
-        onChange={(e) => onChangeCheckedHandler(e.target.checked)}
+    <div>
+      <div className="form-check">
+        <input
+          type="checkbox"
+          className="form-check-input"
+          checked={isChecked}
+          onChange={(e) => onChangeCheckedHandler(e.target.checked)}
+        />
+        <label className="form-check-label">{label}</label>
+      </div>
+      <TextareaAutosize
+        style={
+          isChecked && evidenceText === "" ? { border: "1px solid red" } : {}
+        }
+        className="form-control form-control-sm"
+        value={evidenceText}
+        onChange={(e) => onChangeEvidenceHandler(e.target.value)}
       />
-      <label className="form-check-label">{label}</label>
     </div>
   );
 };
