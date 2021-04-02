@@ -273,7 +273,7 @@ function App() {
           </label>
           <TextareaAutosize
             className="form-control form-control-sm"
-            placeholder="Old SANPERS/SANGANG"
+            placeholder="Paste SANPERS/SANGANG"
             maxRows={1}
             value={oldPersonFile}
             onChange={(e) => setOldPersonFile(e.target.value)}
