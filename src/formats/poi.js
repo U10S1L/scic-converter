@@ -4,7 +4,7 @@ export const generatePoi = (imgUrl, mdcUrl, name, race, sex, description) => {
 [hr][/hr]
 [center]
 [img]${imgUrl}[/img]
-[url=MDCLINKHERE]${mdcUrl}[/url]
+[url=${mdcUrl}]MDC[/url]
 [/center]
 [hr][/hr]
 [b]NAME:[/b] ${name}
